@@ -1,0 +1,4 @@
+.vscode
+.metals
+project/out/
+project/test_run_dir/
