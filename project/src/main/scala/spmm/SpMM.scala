@@ -32,7 +32,7 @@ class SpMM extends Module {
 
   io.output_default_value()
 
-  val issueUnit = Module(IssueUnit());
+  val issueUnit = Module(new IssueUnit);
   // link issueUnit to SpMM
   {
     issueUnit.io.start := io.start
@@ -45,8 +45,24 @@ class SpMM extends Module {
     io.inputReady := issueUnit.io.inputReady
   }
 
-  val debug = IO(Output(issueUnit.io.shot.cloneType))
-  debug := issueUnit.io.shot
+  val productUnit = Module(new ElementwiseProduct);
+  {
+    productUnit.io.input := issueUnit.io.shot
+  }
+
+  val reduceUnit = Module(new Reduction);
+  {
+    reduceUnit.io.input := productUnit.io.output
+  }
+
+  val collectUnit = Module(new CollectUnit);
+  {
+    collectUnit.io.input := reduceUnit.io.output
+    // TODO: link with external output
+  }
+
+  val debug = IO(Output(Shot()))
+  debug := reduceUnit.io.output
 }
 
 

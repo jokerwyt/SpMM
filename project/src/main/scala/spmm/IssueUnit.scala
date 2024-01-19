@@ -194,11 +194,3 @@ class Iterator extends Module {
   io.out.aLen := aLen
   io.readyForStart := readyForStart && (waitCounter === 0.U)
 }
-
-
-object IssueUnit {
-  def apply(): IssueUnit = {
-    val issueUnit = new IssueUnit()
-    issueUnit
-  }
-}

@@ -12,10 +12,12 @@ class Shot extends Bundle {
   val rhsData = Vec(16, F44());
   val iter = UInt(8.W);             // iteration number, i.e. C^T(_, *)
   
-
-
   // product output
   val products = Vec(16, F44());
+  
+  // Reduce output
+  val prefix_sum = Vec(16, F44());
+  val reduced_sum = Vec(16, F44());
 
   def default_value(): Unit = {
     lhsData.foreach { _ := F44.zero }
@@ -25,6 +27,8 @@ class Shot extends Bundle {
     iter := 16.U;
 
     products.foreach { _ := F44.zero }
+    prefix_sum.foreach { _ := F44.zero }
+    reduced_sum.foreach { _ := F44.zero }
   }
 }
 
@@ -34,3 +38,43 @@ object Shot {
     shot
   }
 }
+
+
+
+
+
+// class ShotSimplified extends Bundle {
+
+//   // issue output
+//   val lhsData = Vec(16, F44());
+//   val lhsRow = Vec(16, UInt(8.W));  // row index of lhs, i.e. C^T(*, _)
+//   val lhsCol = Vec(16, UInt(8.W));  // no need in fact
+//   val rhsData = Vec(16, F44());
+//   val iter = UInt(8.W);             // iteration number, i.e. C^T(_, *)
+  
+//   // product output
+//   val products = Vec(16, F44());
+  
+//   // Reduce output
+//   val prefix_sum = Vec(16, F44());
+//   val reduced_sum = Vec(16, F44());
+
+//   def default_value(): Unit = {
+//     lhsData.foreach { _ := F44.zero }
+//     lhsRow.foreach { _ := 0.U }
+//     lhsCol.foreach { _ := 0.U }
+//     rhsData.foreach { _ := F44.zero }
+//     iter := 16.U;
+
+//     products.foreach { _ := F44.zero }
+//     prefix_sum.foreach { _ := F44.zero }
+//     reduced_sum.foreach { _ := F44.zero }
+//   }
+// }
+
+// object ShotSimplified {
+//   def apply(): ShotSimplified = {
+//     val ShotSimplified = new ShotSimplified()
+//     ShotSimplified
+//   }
+// }

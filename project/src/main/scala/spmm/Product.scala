@@ -10,4 +10,11 @@ class ElementwiseProduct extends Module {
   })
   io.output.default_value();
 
+  io.output := io.input;
+
+  when (true.B) {
+    for (i <- 0 until 16) {
+      io.output.products(i) := io.input.lhsData(i) * io.input.rhsData(i);
+    }
+  }
 }
