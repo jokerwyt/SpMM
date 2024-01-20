@@ -6,18 +6,18 @@ import chisel3.util._
 class Shot extends Bundle {
 
   // issue output
-  val lhsData = Vec(16, F44());
-  val lhsRow = Vec(16, UInt(9.W));  // row index of lhs, i.e. C^T(*, _)
-  val lhsCol = Vec(16, UInt(9.W));  // no need in fact
-  val rhsData = Vec(16, F44());
+  val lhsData = Vec(17, F44());
+  val lhsRow = Vec(17, UInt(9.W));  // row index of lhs, i.e. C^T(*, _)
+  val lhsCol = Vec(17, UInt(9.W));  // no need in fact
+  val rhsData = Vec(17, F44());
   val iter = UInt(9.W);             // iteration number, i.e. C^T(_, *)
   
   // product output
-  val products = Vec(16, F44());
+  val products = Vec(17, F44());
   
   // Reduce output
-  val prefix_sum = Vec(16, F44());
-  val reduced_sum = Vec(16, F44());
+  val prefix_sum = Vec(17, F44());
+  val reduced_sum = Vec(17, F44());
 
   // collect used
 
@@ -50,13 +50,14 @@ class Shot extends Bundle {
 
   // Collect used
   def getCollectMetadata(): CollectMetadata = {
-      val _valid = Wire(Vec(16, Bool()))
+      val _valid = Wire(Vec(17, Bool()))
+      _valid(16) := false.B
       _valid(15) := true.B
       for (i <- 0 until 15) {
         _valid(i) := lhsRow(i) =/= lhsRow(i+1)
       }
       
-      val firstValidTmp = Seq.tabulate(16) { _ => WireDefault(16.U(9.W))};
+      val firstValidTmp = Seq.tabulate(17) { _ => WireDefault(16.U(9.W))};
       firstValidTmp(15) := 15.U(9.W)
       for (i <- 14 until -1 by -1) {
         firstValidTmp(i) := Mux(_valid(i), i.U, firstValidTmp(i + 1))
@@ -71,7 +72,7 @@ class Shot extends Bundle {
 }
 
 class CollectMetadata extends Bundle {
-  val valid = Wire(Vec(16, Bool()));
+  val valid = Wire(Vec(17, Bool()));
   val firstValid = Wire(UInt(9.W));
 }
 

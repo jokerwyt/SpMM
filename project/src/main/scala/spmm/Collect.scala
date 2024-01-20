@@ -51,12 +51,14 @@ class CollectUnit extends Module {
 
   val nextRowOutput = RegInit(0.U(9.W));
 
-  val CTmem = Reg(Vec(17, Vec(17, F44())))
+  val CTmem = SyncReadMem(17, Vec(17, F44()), SyncReadMem.WriteFirst);
   val iterArrived = RegInit(0.U(9.W))       // 最后插入的元素的C^T中的行号
+  val iterArrivedDelay = RegNext(iterArrived);
 
-  val validWire = WireDefault(false.B)
-  val outputWire = WireDefault(VecInit(Seq.fill(16)(F44.zero)))
-  io.output.valid := validWire
+  val validReg = RegInit(false.B)
+
+  val outputWire = WireInit(VecInit(Seq.fill(16)(F44.zero)))
+  io.output.valid := validReg
   io.output.outData := outputWire
 
   when (true.B) {
@@ -68,33 +70,36 @@ class CollectUnit extends Module {
       lastRow := 0.U
 
       iterArrived := 0.U
+      iterArrivedDelay := 0.U
       nextRowOutput := 0.U
 
       // rset CTmem
-      for (i <- 0 until 17) {
-        for (j <- 0 until 17) {
-          CTmem(i)(j) := F44.zero
-        }
+      for (i <- 0 until 16) {
+        CTmem.write(i.U, VecInit(Seq.fill(17)(F44.zero)))
       }
     }
   }
 
   when (true.B) {
-
     // fill into mem & iterArrived logic
 
     when (iterArrived =/= 16.U) {
       iterArrived := Mux(inputReg2.iter === iterArrived + 1.U(9.W), inputReg2.iter, iterArrived)
     }
-    
-    for (i <- 0 until 15) {
-      when (inputReg2.getCollectMetadata().valid(i)) {
-        CTmem(inputReg2.iter)(inputReg2.lhsRow(i)) := inputReg2.reduced_sum(i)
-      }
-    }
+    iterArrivedDelay := iterArrived
+
+    val valid_exclude15 = inputReg2.getCollectMetadata().valid;
+    valid_exclude15(15) := false.B
+
+    val normal_WP = CTmem.write(inputReg2.iter, inputReg2.reduced_sum, valid_exclude15)
 
     when (inputReg2.merged === false.B) {
-      CTmem(inputReg2.previousIter)(inputReg2.previousLhsRow) := inputReg2.previousReducedSum
+      val mask = WireDefault(VecInit(Seq.fill(17)(false.B)))
+      mask(inputReg2.previousLhsRow) := true.B
+
+      val value = WireDefault(VecInit(Seq.fill(17)(F44.zero)))
+      value(inputReg2.previousLhsRow) := inputReg2.previousReducedSum
+      CTmem.write(inputReg2.previousIter, value, mask)
     }
   }
 
@@ -102,15 +107,18 @@ class CollectUnit extends Module {
   when (true.B) {
     // output logic
     // can we output more ?
-    when (nextRowOutput < iterArrived) {
+    when (nextRowOutput < iterArrivedDelay) {
       // output last one
-      validWire := true.B
-      for (i <- 0 until 16) {
-        outputWire(i) := CTmem(nextRowOutput)(i)
-      }
+      validReg := true.B
       nextRowOutput := nextRowOutput + 1.U
     } .otherwise {
-      validWire := false.B;
+      validReg := false.B;
     }
+  }
+
+  
+  val readout = CTmem.read(nextRowOutput)
+  for (i <- 0 until 16) {
+    outputWire(i) := readout(i)
   }
 }

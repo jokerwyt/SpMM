@@ -111,7 +111,7 @@ class IssueUnit extends Module {
     }
   }
 
-  val lhsRowTmp = WireDefault(VecInit(Seq.fill(16)(0.U(9.W))))
+  val lhsRowTmp = WireDefault(VecInit(Seq.fill(17)(0.U(9.W))))
   io.shot.lhsRow := ShiftRegister(lhsRowTmp, 1)
 
   for (i <- 0 until 16) {
@@ -169,7 +169,7 @@ class Iterator extends Module {
   val next = RegInit(0.U(9.W))      // next index of A to issue
   val aLen = RegInit(0.U(9.W))      // length of A to issue
 
-  val kWaitGap = 4.U(9.W)          // wait gap between two runs' issues
+  val kWaitGap = 10.U(9.W)          // wait gap between two runs' issues
   val waitCounter = RegInit(0.U)
   val readyForStart = WireDefault(iterIdx === 16.U)
 

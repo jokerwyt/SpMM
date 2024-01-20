@@ -1,0 +1,4 @@
+[debug] [project-build] Classpath dependencies List()
+[debug] [project-build] Dependencies from configurations List()
+[debug] Bloop wrote the configuration of project 'project-build' to '/root/SpMM-handout/project/project/.bloop/project-build.json'
+[success] Generated .bloop/project-build.json
