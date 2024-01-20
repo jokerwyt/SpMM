@@ -19,148 +19,98 @@ class CollectUnit extends Module {
   // 收到Iter == 16，将lastData刷入mem.
   // 如果一轮输出结束，重置所有状态
 
-  val nextRowOutput = RegInit(0.U(8.W));
-  val maxIter = RegInit(0.U(8.W));
+  val inputReg0 = RegNext(io.input, Shot.invalid)
+  val inputReg1 = RegNext(inputReg0, Shot.invalid)
+  val inputReg2 = RegNext(inputReg1, Shot.invalid)
 
-
-  val CTmem = Reg(Vec(17, Vec(17, F44())))
-  val newestIter = RegInit(0.U(8.W))       // 最后插入的元素的C^T中的行号
-
-  val hasLastData = RegInit(false.B)      // 是否有尚未插入的数据
+  // border register
   val lastData = RegInit(F44.zero)        // 尚未插入的数据
-  val lastIter = RegInit(0.U(8.W))        // 尚未插入的数据的iter     (C^T row number)
-  val lastRow = RegInit(0.U(8.W))         // 尚未插入的数据的rowNum   (C^T col number)
+  val lastIter = RegInit(0.U(9.W))        // 尚未插入的数据的iter     (C^T row number)
+  val lastRow = RegInit(0.U(9.W))         // 尚未插入的数据的rowNum   (C^T col number)
                                           // 这个row意思是A中的row num
 
+  when (true.B) {
+    lastData := io.input.reduced_sum(15)
+    lastIter := io.input.iter
+    lastRow := io.input.lhsRow(15)
+
+    inputReg0.merged := io.input.iter === lastIter && 
+      io.input.lhsRow(0) === lastRow;
+    inputReg0.lastData := lastData
+    inputReg0.previousReducedSum := lastData
+    inputReg0.previousIter := lastIter
+    inputReg0.previousLhsRow := lastRow
+
+    val preAdd = inputReg0.lastData + inputReg0.reduced_sum(inputReg0.getCollectMetadata().firstValid);
+
+    when (inputReg1.merged) {
+      inputReg2.reduced_sum(inputReg1.getCollectMetadata().firstValid) := preAdd;
+    }
+  }
+
+
+  val nextRowOutput = RegInit(0.U(9.W));
+
+  val CTmem = Reg(Vec(17, Vec(17, F44())))
+  val iterArrived = RegInit(0.U(9.W))       // 最后插入的元素的C^T中的行号
+
+  val validReg = WireDefault(false.B)
+  val outputReg = WireDefault(VecInit(Seq.fill(16)(F44.zero)))
+  io.output.valid := validReg
+  io.output.outData := outputReg
 
   when (true.B) {
-    // calculate part
-    // 先找出所有最后的reduced_sum[i]
-    // reduced_sum[i]最终应该加到C^T的(iter, lhsRow[i])上
-    
-    when (io.input.iter === 16.U) {
+    // reset logic.
+    when (inputReg2.iter === 16.U && nextRowOutput === 16.U) {
+      // reset all states
+      lastData := F44.zero
+      lastIter := 0.U
+      lastRow := 0.U
 
-      when (hasLastData) {
-        CTmem(lastIter)(lastRow) := lastData
-        newestIter := lastIter
-        hasLastData := false.B
-      }
-      newestIter := 16.U
+      iterArrived := 0.U
+      nextRowOutput := 0.U
 
-    } .otherwise {
-
-      val valid = Wire(Vec(16, Bool()))
-
-      valid(15) := true.B
-      for (i <- 0 until 15) {
-        valid(i) := io.input.lhsRow(i) =/= io.input.lhsRow(i+1)
-      }
-      
-      
-      val firstValidTmp = Seq.tabulate(16) { _ => WireDefault(16.U(8.W))};
-
-      firstValidTmp(15) := 15.U(8.W)
-      for (i <- 14 until 0 by -1) {
-        firstValidTmp(i) := Mux(valid(i), i.U, firstValidTmp(i + 1))
-      }
-      val firstValidIdx = firstValidTmp(0)
-      val lastValidIdx = 15.U(8.W)
-
-      when (firstValidIdx === lastValidIdx) {
-        // 判断是否要与lastData合并
-        when (hasLastData && lastIter === io.input.iter && io.input.lhsRow(firstValidIdx) === lastRow) {
-          // 合并
-          // 至多合并一次，直接将合并后的结果写入
-          CTmem(lastIter)(lastRow) := lastData + io.input.reduced_sum(firstValidIdx)
-          newestIter := RegNext(lastIter) // 加法有一周期延迟，确保当结果刷入时newestIter才更新
-          hasLastData := false.B
-
-        } .otherwise {
-          // 不合并, lastData写入mem，取代lastData
-          when (hasLastData) {
-            CTmem(lastIter)(lastRow) := CTmem(lastIter)(lastRow) + lastData
-            newestIter := RegNext(lastIter) // 加法有一周期延迟，确保当结果刷入时newestIter才更新
-          }
-          
-          lastData := io.input.reduced_sum(firstValidIdx)
-          lastIter := io.input.iter
-          lastRow := io.input.lhsRow(firstValidIdx)
-          hasLastData := true.B
-        }
-
-      } .otherwise {
-        // consider firstValidIdx
-        // merge with previous?
-
-        val firstMerged = WireDefault(false.B)
-        when (hasLastData && lastIter === io.input.iter && io.input.lhsRow(firstValidIdx) === lastRow) {
-          // 合并
-          // 至多合并一次，直接将合并后的结果写入
-          CTmem(lastIter)(lastRow) := lastData + io.input.reduced_sum(firstValidIdx)
-          firstMerged := true.B
-          hasLastData := false.B
-
-        } .otherwise {
-          // 不合并, lastData写入mem
-          when (hasLastData) {
-            CTmem(lastIter)(lastRow) := lastData
-          }
-          hasLastData := false.B
-        }
-
-        // more than one valid
-        // 中间的直接插入
-        val midInsert = WireDefault(false.B)
-        for (i <- 0 until 16) {
-          when (valid(i) =/= firstValidIdx && valid(i) =/= lastValidIdx) {
-            CTmem(io.input.iter)(io.input.lhsRow(i)) := io.input.reduced_sum(i)
-            midInsert := true.B
-          }
-        }
-        
-        hasLastData := true.B
-        lastData := io.input.reduced_sum(lastValidIdx)
-        lastIter := io.input.iter
-        lastRow := io.input.lhsRow(lastValidIdx)
-
-        when (firstMerged || midInsert) {
-          when (firstMerged && !midInsert) {
-            newestIter := RegNext(io.input.iter)
-          } .otherwise {
-            newestIter := io.input.iter
-          }
-        } .otherwise {
-          // do nothing
+      // rset CTmem
+      for (i <- 0 until 17) {
+        for (j <- 0 until 17) {
+          CTmem(i)(j) := F44.zero
         }
       }
     }
   }
 
   when (true.B) {
-    // output part.
-    
-    val maxIterWire = Mux(io.input.iter > maxIter, io.input.iter, maxIter)
-    maxIter := maxIterWire
 
-    when (nextRowOutput === 16.U) {
-      // one round of output finished
-      // reset all states
-      nextRowOutput := 0.U
-      maxIter := 0.U
-      hasLastData := false.B
-      CTmem.foreach { _ := VecInit(Seq.fill(17)(F44.zero)) }
-    } .otherwise {
-      // can we output more ?
-      when (nextRowOutput < newestIter) {
-        // output last one
-        io.output.valid := true.B
-        for (i <- 0 until 16) {
-          io.output.outData(i) := CTmem(nextRowOutput)(i)
-        }
-        nextRowOutput := nextRowOutput + 1.U
-      } .otherwise {
-        // output nothing
+    // fill into mem & iterArrived logic
+
+    when (iterArrived =/= 16.U) {
+      iterArrived := Mux(inputReg2.iter === iterArrived + 1.U(9.W), inputReg2.iter, iterArrived)
+    }
+    
+    for (i <- 0 until 15) {
+      when (inputReg2.getCollectMetadata().valid(i)) {
+        CTmem(inputReg2.iter)(inputReg2.lhsRow(i)) := inputReg2.reduced_sum(i)
       }
+    }
+
+    when (inputReg2.merged === false.B) {
+      CTmem(inputReg2.previousIter)(inputReg2.previousLhsRow) := inputReg2.previousReducedSum
+    }
+  }
+
+
+  when (true.B) {
+    // output logic
+    // can we output more ?
+    when (nextRowOutput < iterArrived) {
+      // output last one
+      validReg := true.B
+      for (i <- 0 until 16) {
+        outputReg(i) := CTmem(nextRowOutput)(i)
+      }
+      nextRowOutput := nextRowOutput + 1.U
+    } .otherwise {
+      validReg := false.B;
     }
   }
 }

@@ -17,7 +17,7 @@ class Reduction extends Module {
 
   // 先写一个最简单的，latency=16的前缀和 + 最后一个周期的n^2个加法器?
 
-  val stages = Seq.tabulate(16)( _ => Reg(Shot()));
+  val stages = Seq.tabulate(16)( _ => RegInit(Shot.invalid));
   for (i <- 0 until 16) {
     stages(i).default_value();
   }
@@ -30,37 +30,49 @@ class Reduction extends Module {
 
   for (i <- 1 until 16) {
     when (true.B) {
-      stages(i) := RegNext(stages(i-1))
+      stages(i) := RegNext(stages(i-1), Shot.invalid);
       stages(i).prefix_sum(i) := stages(i-1).prefix_sum(i-1) + stages(i-1).products(i);
     }
   }
 
   // stage 15 to output
-  io.output := stages(15);
 
   // for every i in [0, 15]
   // find the left and right bound of the interval with the same lhsRow
   // add the product of the interval to the right bound
 
-  for (i <- 0 until 16) {
-    val left = WireDefault(0.U(8.W))
-    val right = WireDefault(0.U(8.W))
+  val stage16 = RegInit(Shot.invalid);
+  stage16.default_value();
 
+  val left15 = Seq.tabulate(16) { _ => WireDefault(0.U(9.W))}
+  val right15 = Seq.tabulate(16) { _ => WireDefault(0.U(9.W))}
+  val left16 = Seq.tabulate(16) { i => RegNext(left15(i))}
+  val right16 = Seq.tabulate(16) { i => RegNext(right15(i))}
+  val middle = Seq.tabulate(16) { _ => WireDefault(F44.zero) }
+
+  for (i <- 0 until 16) {
     for (j <- 0 until 16) {
       when (stages(15).lhsRow(j) === stages(15).lhsRow(i)) {
-        right := j.U
+        right15(i) := j.U
       }
     }
 
     // from 15 to 0
     for (j <- 15 to 0 by -1) {
       when (stages(15).lhsRow(j) === stages(15).lhsRow(i)) {
-        left := j.U
+        left15(i) := j.U
       }
     }
 
-    io.output.reduced_sum(i) := Mux(left === 0.U, 
-      stages(15).prefix_sum(right),
-      stages(15).prefix_sum(right) - stages(15).prefix_sum(left-1.U));
+    middle(i) := stages(15).prefix_sum(right15(i)) - stages(15).prefix_sum(left15(i)-1.U)
+  }
+
+  stage16 := stages(15);
+
+  io.output := stage16;
+  for (i <- 0 until 16) {
+    io.output.reduced_sum(i) := Mux(left16(i) === 0.U, 
+      stage16.prefix_sum(right16(i)),
+      middle(i));
   }
 }

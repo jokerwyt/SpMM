@@ -10,8 +10,8 @@ class IssueUnit extends Module {
     // SpMM external interface
     val start = Input(Bool())
     val inputReady = Output(Bool())
-    val lhsRowEnding = Input(Vec(16, UInt(8.W)))
-    val lhsCol = Input(Vec(16, UInt(8.W)))
+    val lhsRowEnding = Input(Vec(16, UInt(9.W)))
+    val lhsCol = Input(Vec(16, UInt(9.W)))
     val lhsData = Input(Vec(16, F44()))
     val rhsReset = Input(Bool())
     val rhsData = Input(Vec(16, F44()))
@@ -23,12 +23,12 @@ class IssueUnit extends Module {
 
   // ========== edge 1: Iterator & rowEndingBuffer
   val iterator = Module(new Iterator());
-  val lhsRowEndingBuffer = RegInit(VecInit(Seq.fill(16)(0.U(8.W))));
+  val lhsRowEndingBuffer = RegInit(VecInit(Seq.fill(16)(0.U(9.W))));
 
   // if start = 1, aLen should be io.lhsRowEnding(15)
   // otherwise aLen should be lhsRowEndingBuffer(15)
   // this is valid even in edge 1.
-  val aLen = Mux(io.start, io.lhsRowEnding(15), lhsRowEndingBuffer(15));
+  val aLen = Mux(io.start, io.lhsRowEnding(15) + 1.U, lhsRowEndingBuffer(15) + 1.U);
 
   {
     when (io.start) {
@@ -42,15 +42,21 @@ class IssueUnit extends Module {
   // iterator.io.out can be used in edge 2
   val lhsPickIdx_edge1 = WireDefault(iterator.io.out.firstIdx / 16.U) // used in edge 2
 
-  val iterOut_edge2 = ShiftRegister(iterator.io.out, 1)          // used in edge 3
+  val iterOut_edge2 = ShiftRegister(iterator.io.out, 1, {
+    val output = Wire(IteratorOutput())
+    output.iterIdx := 16.U
+    output.firstIdx := 0.U
+    output.aLen := 0.U
+    output
+  }, true.B)          // used in edge 3
 
   // ========== edge 2: lhsDataBuf
 
   val lhsDataMem = SyncReadMem(17, Vec(16, F44()), SyncReadMem.WriteFirst);
-  val lhsColMem = SyncReadMem(17, Vec(16, UInt(8.W)), SyncReadMem.WriteFirst);
+  val lhsColMem = SyncReadMem(17, Vec(16, UInt(9.W)), SyncReadMem.WriteFirst);
 
   { // always running part in edge 2
-    val lhsNxtWrite = RegInit(0.U(8.W)) // control write to lhsDataMem
+    val lhsNxtWrite = RegInit(0.U(9.W)) // control write to lhsDataMem
     when (true.B) {
       when (io.start) {
         lhsNxtWrite := 1.U
@@ -60,7 +66,7 @@ class IssueUnit extends Module {
           lhsNxtWrite := lhsNxtWrite + 1.U
         }
       }
-      val groupIndexBypassed = Mux(io.start, 0.U(8.W), lhsNxtWrite)
+      val groupIndexBypassed = Mux(io.start, 0.U(9.W), lhsNxtWrite)
 
       when (groupIndexBypassed * 16.U < aLen) {
         lhsDataMem.write(groupIndexBypassed, io.lhsData)
@@ -77,7 +83,7 @@ class IssueUnit extends Module {
     Mux(
       iterOut_edge2.firstIdx + i.asUInt < iterOut_edge2.aLen,
       lhsColPick_(i),
-      16.U(8.W)
+      16.U(9.W)
     )
   });
 
@@ -87,7 +93,7 @@ class IssueUnit extends Module {
   val rhsDataPick_edge2 = rhsDataMem.read(iterator.io.out.iterIdx)
 
   { // always running part in edge 3
-    val rhsDataNxtWrite = RegInit(0.U(8.W)) // control write to rhsDataMem
+    val rhsDataNxtWrite = RegInit(0.U(9.W)) // control write to rhsDataMem
     when (true.B) {
       when (io.start && io.rhsReset) {
         rhsDataNxtWrite := 1.U
@@ -97,7 +103,7 @@ class IssueUnit extends Module {
           rhsDataNxtWrite := rhsDataNxtWrite + 1.U
         }
       }
-      val groupIndexBypassed = Mux(io.start && io.rhsReset, 0.U(8.W), rhsDataNxtWrite)
+      val groupIndexBypassed = Mux(io.start && io.rhsReset, 0.U(9.W), rhsDataNxtWrite)
 
       when (groupIndexBypassed < 16.U) {
         rhsDataMem.write(groupIndexBypassed, io.rhsData)
@@ -105,32 +111,39 @@ class IssueUnit extends Module {
     }
   }
 
-  val lhsRowTmp = WireDefault(VecInit(Seq.fill(16)(0.U(8.W))))
-  io.shot.lhsRow := lhsRowTmp
+  val lhsRowTmp = WireDefault(VecInit(Seq.fill(16)(0.U(9.W))))
+  io.shot.lhsRow := ShiftRegister(lhsRowTmp, 1)
 
   for (i <- 0 until 16) {
-    io.shot.lhsData(i) := lhsDataPick_edge2(i)
+    io.shot.lhsData(i) := RegNext(lhsDataPick_edge2(i))
 
     // assign io.shot.lhsRow, according to lhsRowEndingBuffer
     lhsRowTmp(i) := 0.U
     for (j <- 0 until 16) {
-      when (lhsRowEndingBuffer(j) < iterOut_edge2.firstIdx + i.asUInt(8.W)) {
-        lhsRowTmp(i) := j.asUInt(8.W) + 1.U
+      when (lhsRowEndingBuffer(j) < iterOut_edge2.firstIdx + i.asUInt(9.W)) {
+        lhsRowTmp(i) := j.asUInt(9.W) + 1.U
       }
     }
 
     io.shot.lhsCol(i) := lhsColPick_edge2(i)
-    io.shot.rhsData(i) := rhsDataPick_edge2(lhsColPick_edge2(i))
+    io.shot.rhsData(i) := RegNext(rhsDataPick_edge2(lhsColPick_edge2(i)))
   }
 
-  io.shot.iter := iterOut_edge2.iterIdx
+  io.shot.iter := RegNext(iterOut_edge2.iterIdx, 16.U)
 }
 
 class IteratorOutput extends Bundle {
-  val iterIdx = UInt(8.W);          // 0..16, 16 means invalid
-  val firstIdx = UInt(8.W);         // [firstIdx, max(firstIdx+16, aLen)) 
+  val iterIdx = UInt(9.W);          // 0..16, 16 means invalid
+  val firstIdx = UInt(9.W);         // [firstIdx, max(firstIdx+16, aLen)) 
                                     // is the range of A to issue
-  val aLen = UInt(8.W);
+  val aLen = UInt(9.W);
+}
+
+object IteratorOutput {
+  def apply(): IteratorOutput = {
+    val output = new IteratorOutput()
+    output
+  }
 }
 
 // 从start信号为真的下一周期开始，重复迭代A 16次：
@@ -146,17 +159,17 @@ class IteratorOutput extends Bundle {
 class Iterator extends Module {
   val io = IO(new Bundle{
     val start = Input(Bool())
-    val aLenIn = Input(UInt(8.W))
+    val aLenIn = Input(UInt(9.W))
 
     val readyForStart = Output(Bool())
     val out = new IteratorOutput()
   })
 
-  val iterIdx = RegInit(16.U(8.W))  // 0..16, 16 means invalid
-  val next = RegInit(0.U(8.W))      // next index of A to issue
-  val aLen = RegInit(0.U(8.W))      // length of A to issue
+  val iterIdx = RegInit(16.U(9.W))  // 0..16, 16 means invalid
+  val next = RegInit(0.U(9.W))      // next index of A to issue
+  val aLen = RegInit(0.U(9.W))      // length of A to issue
 
-  val kWaitGap = 32.U(8.W)          // wait gap between two runs' issues
+  val kWaitGap = 4.U(9.W)          // wait gap between two runs' issues
   val waitCounter = RegInit(0.U)
   val readyForStart = WireDefault(iterIdx === 16.U)
 

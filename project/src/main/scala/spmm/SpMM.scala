@@ -58,11 +58,10 @@ class SpMM extends Module {
   val collectUnit = Module(new CollectUnit);
   {
     collectUnit.io.input := reduceUnit.io.output
-    // TODO: link with external output
-  }
 
-  val debug = IO(Output(Shot()))
-  debug := reduceUnit.io.output
+    io.outData := collectUnit.io.output.outData
+    io.outValid := collectUnit.io.output.valid
+  }
 }
 
 

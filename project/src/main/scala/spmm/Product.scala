@@ -10,7 +10,7 @@ class ElementwiseProduct extends Module {
   })
   io.output.default_value();
 
-  io.output := io.input;
+  io.output := RegNext(io.input, Shot.invalid);
 
   when (true.B) {
     for (i <- 0 until 16) {
