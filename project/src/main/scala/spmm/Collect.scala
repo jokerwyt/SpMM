@@ -54,10 +54,10 @@ class CollectUnit extends Module {
   val CTmem = Reg(Vec(17, Vec(17, F44())))
   val iterArrived = RegInit(0.U(9.W))       // 最后插入的元素的C^T中的行号
 
-  val validReg = WireDefault(false.B)
-  val outputReg = WireDefault(VecInit(Seq.fill(16)(F44.zero)))
-  io.output.valid := validReg
-  io.output.outData := outputReg
+  val validWire = WireDefault(false.B)
+  val outputWire = WireDefault(VecInit(Seq.fill(16)(F44.zero)))
+  io.output.valid := validWire
+  io.output.outData := outputWire
 
   when (true.B) {
     // reset logic.
@@ -104,13 +104,13 @@ class CollectUnit extends Module {
     // can we output more ?
     when (nextRowOutput < iterArrived) {
       // output last one
-      validReg := true.B
+      validWire := true.B
       for (i <- 0 until 16) {
-        outputReg(i) := CTmem(nextRowOutput)(i)
+        outputWire(i) := CTmem(nextRowOutput)(i)
       }
       nextRowOutput := nextRowOutput + 1.U
     } .otherwise {
-      validReg := false.B;
+      validWire := false.B;
     }
   }
 }

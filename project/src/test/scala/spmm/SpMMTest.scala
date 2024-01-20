@@ -252,79 +252,79 @@ trait SpMMTest extends AnyFlatSpec
   }
 }
 
-// class SpMMSingleRunTest extends SpMMTest {
-//   behavior of "SpMM on single lhs and single rhs"
-//   import DataGen._
-//   it should "work on eye * simple" in
-//     testItOn("t1.1", 2, Seq(SpMMInput(lhsInput=Seq(eyeLhs), rhs=simpleRhs)))
-//   it should "work on eye * random" in
-//     testItOn("t1.2", 3, Seq(SpMMInput(lhsInput=Seq(eyeLhs), rhs=rndRhs(0))))
-//   it should "work on empty * simple" in
-//     testItOn("t1.3", 3, Seq(SpMMInput(lhsInput=Seq(emptyLhs), rhs=simpleRhs)))
-//   it should "work on empty * random" in
-//     testItOn("t1.4", 3, Seq(SpMMInput(lhsInput=Seq(emptyLhs), rhs=rndRhs(0))))
-//   it should "work on simple * simple" in
-//     testItOn("t1.5", 3, Seq(SpMMInput(lhsInput=Seq(simpleLhs(0)), rhs=simpleRhs)))
-//   it should "work on full * simple" in
-//     testItOn("t1.6", 3, Seq(SpMMInput(lhsInput=Seq(fullLhs(0)), rhs=simpleRhs)))
-//   it should "work on random * random" in
-//     testItOn("t1.7", 3, Seq(SpMMInput(lhsInput=Seq(rndLhs(0)), rhs=rndRhs(0))))
-// }
+class SpMMSingleRunTest extends SpMMTest {
+  behavior of "SpMM on single lhs and single rhs"
+  import DataGen._
+  it should "work on eye * simple" in
+    testItOn("t1.1", 2, Seq(SpMMInput(lhsInput=Seq(eyeLhs), rhs=simpleRhs)))
+  it should "work on eye * random" in
+    testItOn("t1.2", 3, Seq(SpMMInput(lhsInput=Seq(eyeLhs), rhs=rndRhs(0))))
+  it should "work on empty * simple" in
+    testItOn("t1.3", 3, Seq(SpMMInput(lhsInput=Seq(emptyLhs), rhs=simpleRhs)))
+  it should "work on empty * random" in
+    testItOn("t1.4", 3, Seq(SpMMInput(lhsInput=Seq(emptyLhs), rhs=rndRhs(0))))
+  it should "work on simple * simple" in
+    testItOn("t1.5", 3, Seq(SpMMInput(lhsInput=Seq(simpleLhs(0)), rhs=simpleRhs)))
+  it should "work on full * simple" in
+    testItOn("t1.6", 3, Seq(SpMMInput(lhsInput=Seq(fullLhs(0)), rhs=simpleRhs)))
+  it should "work on random * random" in
+    testItOn("t1.7", 3, Seq(SpMMInput(lhsInput=Seq(rndLhs(0)), rhs=rndRhs(0))))
+}
 
-// class SpMMStreamingSingleRunTest extends SpMMTest {
-//   behavior of "SpMM on streaming single lhs and single rhs"
-//   import DataGen._
-//   it should "work on eye * simple" in
-//     testItOn("t2.1", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(eyeLhs), rhs=simpleRhs)))
-//   it should "work on eye * random" in
-//     testItOn("t2.2", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(eyeLhs), rhs=rndRhs(i))))
-//   it should "work on empty * simple" in
-//     testItOn("t2.3", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(emptyLhs), rhs=simpleRhs)))
-//   it should "work on empty * random" in
-//     testItOn("t2.4", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(emptyLhs), rhs=rndRhs(i))))
-//   it should "work on simple * simple" in
-//     testItOn("t2.5", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(simpleLhs(i)), rhs=simpleRhs)))
-//   it should "work on full * simple" in
-//     testItOn("t2.6", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(fullLhs(i)), rhs=simpleRhs)))
-//   it should "work on random * random" in
-//     testItOn("t2.7", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(rndLhs(i)), rhs=rndRhs(i))))
-// }
+class SpMMStreamingSingleRunTest extends SpMMTest {
+  behavior of "SpMM on streaming single lhs and single rhs"
+  import DataGen._
+  it should "work on eye * simple" in
+    testItOn("t2.1", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(eyeLhs), rhs=simpleRhs)))
+  it should "work on eye * random" in
+    testItOn("t2.2", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(eyeLhs), rhs=rndRhs(i))))
+  it should "work on empty * simple" in
+    testItOn("t2.3", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(emptyLhs), rhs=simpleRhs)))
+  it should "work on empty * random" in
+    testItOn("t2.4", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(emptyLhs), rhs=rndRhs(i))))
+  it should "work on simple * simple" in
+    testItOn("t2.5", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(simpleLhs(i)), rhs=simpleRhs)))
+  it should "work on full * simple" in
+    testItOn("t2.6", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(fullLhs(i)), rhs=simpleRhs)))
+  it should "work on random * random" in
+    testItOn("t2.7", 2, Seq.tabulate(4)(i=>SpMMInput(lhsInput=Seq(rndLhs(i)), rhs=rndRhs(i))))
+}
 
-// class SpMMStreamingLhsTest extends SpMMTest {
-//   behavior of "SpMM on streaming lhs and single rhs"
-//   import DataGen._
-//   it should "work on streaming lhs eye" in
-//     testItOn("t3.1", 2, Seq(SpMMInput(lhsInput=Seq(eyeLhs, eyeLhs), rhs=simpleRhs)))
-//   it should "work on streaming lhs eye and empty" in
-//     testItOn("t3.2", 2, Seq(SpMMInput(lhsInput=Seq(eyeLhs, emptyLhs), rhs=simpleRhs)))
-//   it should "work on streaming lhs empty" in
-//     testItOn("t3.3", 2, Seq(SpMMInput(lhsInput=Seq(emptyLhs, emptyLhs), rhs=simpleRhs)))
-//   it should "work on streaming lhs simple" in
-//     testItOn("t3.4", 2, Seq(SpMMInput(lhsInput=Seq(simpleLhs(0), simpleLhs(1)), rhs=simpleRhs)))
-//   it should "work on streaming lhs multiple simple" in
-//     testItOn("t3.5", 2, Seq(SpMMInput(lhsInput=Seq.tabulate(4)(i => simpleLhs(i)), rhs=simpleRhs)))
-//   it should "work on streaming lhs random" in
-//     testItOn("t3.6", 2, Seq(SpMMInput(lhsInput=Seq.tabulate(4)(i => rndLhs(i)), rhs=rndRhs(0))))
-// }
+class SpMMStreamingLhsTest extends SpMMTest {
+  behavior of "SpMM on streaming lhs and single rhs"
+  import DataGen._
+  it should "work on streaming lhs eye" in
+    testItOn("t3.1", 2, Seq(SpMMInput(lhsInput=Seq(eyeLhs, eyeLhs), rhs=simpleRhs)))
+  it should "work on streaming lhs eye and empty" in
+    testItOn("t3.2", 2, Seq(SpMMInput(lhsInput=Seq(eyeLhs, emptyLhs), rhs=simpleRhs)))
+  it should "work on streaming lhs empty" in
+    testItOn("t3.3", 2, Seq(SpMMInput(lhsInput=Seq(emptyLhs, emptyLhs), rhs=simpleRhs)))
+  it should "work on streaming lhs simple" in
+    testItOn("t3.4", 2, Seq(SpMMInput(lhsInput=Seq(simpleLhs(0), simpleLhs(1)), rhs=simpleRhs)))
+  it should "work on streaming lhs multiple simple" in
+    testItOn("t3.5", 2, Seq(SpMMInput(lhsInput=Seq.tabulate(4)(i => simpleLhs(i)), rhs=simpleRhs)))
+  it should "work on streaming lhs random" in
+    testItOn("t3.6", 2, Seq(SpMMInput(lhsInput=Seq.tabulate(4)(i => rndLhs(i)), rhs=rndRhs(0))))
+}
 
-// class SpMMStreamingTest extends SpMMTest {
-//   behavior of "SpMM on streaming single lhs and single rhs"
-//   import DataGen._
-//   it should "work on streaming eye" in
-//     testItOn("t4.1", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(eyeLhs, eyeLhs), rhs=simpleRhs)))
-//   it should "work on streaming eye and empty" in
-//     testItOn("t4.2", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(eyeLhs, emptyLhs), rhs=simpleRhs)))
-//   it should "work on streaming empty" in
-//     testItOn("t4.3", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(emptyLhs, emptyLhs), rhs=simpleRhs)))
-//   it should "work on streaming simple" in
-//     testItOn("t4.4", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(simpleLhs(0), simpleLhs(1)), rhs=simpleRhs)))
-//   it should "work on streaming multiple simple" in
-//     testItOn("t4.5", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq.tabulate(4)(i => simpleLhs(i)), rhs=simpleRhs)))
-//   it should "work on streaming random" in
-//     testItOn("t4.6", 2, Seq.tabulate(4)(t=>SpMMInput(lhsInput=Seq.tabulate(4)(i => rndLhs(i)), rhs=rndRhs(t))))
-//   it should "work on streaming full" in
-//     testItOn("t4.7", 2, Seq.tabulate(4)(t=>SpMMInput(lhsInput=Seq.tabulate(4)(i => fullLhs(i)), rhs=rndRhs(t))))
-// }
+class SpMMStreamingTest extends SpMMTest {
+  behavior of "SpMM on streaming single lhs and single rhs"
+  import DataGen._
+  it should "work on streaming eye" in
+    testItOn("t4.1", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(eyeLhs, eyeLhs), rhs=simpleRhs)))
+  it should "work on streaming eye and empty" in
+    testItOn("t4.2", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(eyeLhs, emptyLhs), rhs=simpleRhs)))
+  it should "work on streaming empty" in
+    testItOn("t4.3", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(emptyLhs, emptyLhs), rhs=simpleRhs)))
+  it should "work on streaming simple" in
+    testItOn("t4.4", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq(simpleLhs(0), simpleLhs(1)), rhs=simpleRhs)))
+  it should "work on streaming multiple simple" in
+    testItOn("t4.5", 2, Seq.fill(4)(SpMMInput(lhsInput=Seq.tabulate(4)(i => simpleLhs(i)), rhs=simpleRhs)))
+  it should "work on streaming random" in
+    testItOn("t4.6", 2, Seq.tabulate(4)(t=>SpMMInput(lhsInput=Seq.tabulate(4)(i => rndLhs(i)), rhs=rndRhs(t))))
+  it should "work on streaming full" in
+    testItOn("t4.7", 2, Seq.tabulate(4)(t=>SpMMInput(lhsInput=Seq.tabulate(4)(i => fullLhs(i)), rhs=rndRhs(t))))
+}
 
 class SpMMPerformanceTest extends SpMMTest {
   behavior of "SpMM performance"
