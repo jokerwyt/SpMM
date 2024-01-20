@@ -7390,42 +7390,43 @@ module CollectUnit(	// <stdin>:20773:3
   reg  [7:0]   preAdd_ret_data_REG;	// src/main/scala/spmm/Arith.scala:22:24
   reg  [8:0]   nextRowOutput;	// src/main/scala/spmm/Collect.scala:52:30
   reg  [8:0]   iterArrived;	// src/main/scala/spmm/Collect.scala:55:28
+  reg  [8:0]   iterArrivedDelay;	// src/main/scala/spmm/Collect.scala:56:33
   reg          validReg;	// src/main/scala/spmm/Collect.scala:58:25
   wire         CTmem_MPORT_9_en = inputReg2_iter == 9'h10 & nextRowOutput == 9'h10;	// src/main/scala/spmm/Collect.scala:24:26, :52:30, :66:{26,35,52}, src/main/scala/spmm/Shot.scala:60:62
   assign value_0_data =
-    inputReg2_previousLhsRow[4:0] == 5'h0 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h0 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_1_data =
-    inputReg2_previousLhsRow[4:0] == 5'h1 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h1 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_2_data =
-    inputReg2_previousLhsRow[4:0] == 5'h2 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h2 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_3_data =
-    inputReg2_previousLhsRow[4:0] == 5'h3 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h3 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_4_data =
-    inputReg2_previousLhsRow[4:0] == 5'h4 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h4 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_5_data =
-    inputReg2_previousLhsRow[4:0] == 5'h5 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h5 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_6_data =
-    inputReg2_previousLhsRow[4:0] == 5'h6 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h6 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_7_data =
-    inputReg2_previousLhsRow[4:0] == 5'h7 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h7 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_8_data =
-    inputReg2_previousLhsRow[4:0] == 5'h8 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h8 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_9_data =
-    inputReg2_previousLhsRow[4:0] == 5'h9 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'h9 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_10_data =
-    inputReg2_previousLhsRow[4:0] == 5'hA ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'hA ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_11_data =
-    inputReg2_previousLhsRow[4:0] == 5'hB ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'hB ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_12_data =
-    inputReg2_previousLhsRow[4:0] == 5'hC ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'hC ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_13_data =
-    inputReg2_previousLhsRow[4:0] == 5'hD ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'hD ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_14_data =
-    inputReg2_previousLhsRow[4:0] == 5'hE ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'hE ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_15_data =
-    inputReg2_previousLhsRow[4:0] == 5'hF ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
+    inputReg2_previousLhsRow[4:0] == 5'hF ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :47:72, :99:30, :100:39
   assign value_16_data =
-    inputReg2_previousLhsRow[4:0] == 5'h10 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23455:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :99:30, :100:39, src/main/scala/spmm/Shot.scala:38:10
+    inputReg2_previousLhsRow[4:0] == 5'h10 ? inputReg2_previousReducedSum_data : 8'h0;	// <stdin>:23456:21, src/main/scala/spmm/Arith.scala:10:14, src/main/scala/spmm/Collect.scala:24:26, :99:30, :100:39, src/main/scala/spmm/Shot.scala:38:10
   always @(posedge clock) begin	// <stdin>:20774:11
     automatic logic [31:0][7:0] _GEN;	// src/main/scala/spmm/Arith.scala:25:46
     if (reset) begin	// <stdin>:20774:11
@@ -7569,7 +7570,7 @@ module CollectUnit(	// <stdin>:20773:3
                                                               ? 5'hD
                                                               : {4'h7,
                                                                  inputReg1_lhsRow_14 == inputReg1_lhsRow_15};	// src/main/scala/spmm/Collect.scala:23:26, :47:72, src/main/scala/spmm/Shot.scala:57:32, :63:32
-      _GEN_0 = nextRowOutput < iterArrived;	// src/main/scala/spmm/Collect.scala:52:30, :55:28, :109:25
+      _GEN_0 = nextRowOutput < iterArrivedDelay;	// src/main/scala/spmm/Collect.scala:52:30, :56:33, :109:25
       inputReg0_lhsRow_0 <= io_input_lhsRow_0;	// src/main/scala/spmm/Collect.scala:22:26
       inputReg0_lhsRow_1 <= io_input_lhsRow_1;	// src/main/scala/spmm/Collect.scala:22:26
       inputReg0_lhsRow_2 <= io_input_lhsRow_2;	// src/main/scala/spmm/Collect.scala:22:26
@@ -7800,6 +7801,7 @@ module CollectUnit(	// <stdin>:20773:3
                                                                    ? 5'hD
                                                                    : {4'h7,
                                                                       inputReg0_lhsRow_14 == inputReg0_lhsRow_15}];	// src/main/scala/spmm/Arith.scala:22:24, :25:46, src/main/scala/spmm/Collect.scala:22:26, :47:72, src/main/scala/spmm/Shot.scala:57:32, :63:32
+    iterArrivedDelay <= iterArrived;	// src/main/scala/spmm/Collect.scala:55:28, :56:33
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// <stdin>:20773:3
     `ifdef FIRRTL_BEFORE_INITIAL	// <stdin>:20773:3
@@ -7919,6 +7921,7 @@ module CollectUnit(	// <stdin>:20773:3
         preAdd_ret_data_REG = _RANDOM[7'h61][19:12];	// <stdin>:20773:3, src/main/scala/spmm/Arith.scala:22:24, src/main/scala/spmm/Collect.scala:28:25
         nextRowOutput = _RANDOM[7'h61][28:20];	// <stdin>:20773:3, src/main/scala/spmm/Collect.scala:28:25, :52:30
         iterArrived = {_RANDOM[7'h61][31:29], _RANDOM[7'h62][5:0]};	// <stdin>:20773:3, src/main/scala/spmm/Collect.scala:28:25, :55:28
+        iterArrivedDelay = _RANDOM[7'h62][14:6];	// <stdin>:20773:3, src/main/scala/spmm/Collect.scala:55:28, :56:33
         validReg = _RANDOM[7'h62][15];	// <stdin>:20773:3, src/main/scala/spmm/Collect.scala:55:28, :58:25
       `endif // RANDOMIZE_REG_INIT
     end // initial
@@ -8057,9 +8060,9 @@ module CollectUnit(	// <stdin>:20773:3
   assign io_output_outData_15_data = _CTmem_ext_R0_data[127:120];	// <stdin>:20773:3, src/main/scala/spmm/Collect.scala:54:26
 endmodule
 
-module SpMM(	// <stdin>:23581:3
-  input        clock,	// <stdin>:23582:11
-               reset,	// <stdin>:23583:11
+module SpMM(	// <stdin>:23582:3
+  input        clock,	// <stdin>:23583:11
+               reset,	// <stdin>:23584:11
                io_start,	// src/main/scala/spmm/SpMM.scala:31:14
   output       io_inputReady,	// src/main/scala/spmm/SpMM.scala:31:14
   input  [7:0] io_lhsRowIdx_0,	// src/main/scala/spmm/SpMM.scala:31:14

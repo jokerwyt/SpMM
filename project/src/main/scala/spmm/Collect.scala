@@ -74,32 +74,60 @@ class CollectUnit extends Module {
       nextRowOutput := 0.U
 
       // rset CTmem
-      for (i <- 0 until 16) {
-        CTmem.write(i.U, VecInit(Seq.fill(17)(F44.zero)))
+
+      when (iterArrived =/= 0.U) {
+        // only clear write one time.
+        // don't interfere with the next round.
+        for (i <- 0 until 16) {
+          CTmem.write(i.U, VecInit(Seq.fill(17)(F44.zero)))
+        }
       }
     }
   }
 
+  iterArrivedDelay := iterArrived
   when (true.B) {
     // fill into mem & iterArrived logic
-
     when (iterArrived =/= 16.U) {
       iterArrived := Mux(inputReg2.iter === iterArrived + 1.U(9.W), inputReg2.iter, iterArrived)
     }
-    iterArrivedDelay := iterArrived
 
-    val valid_exclude15 = inputReg2.getCollectMetadata().valid;
-    valid_exclude15(15) := false.B
+    val CTvalid = WireDefault(VecInit(Seq.fill(17)(false.B)))
+    val value = WireDefault(VecInit(Seq.fill(17)(F44.zero)))
 
-    val normal_WP = CTmem.write(inputReg2.iter, inputReg2.reduced_sum, valid_exclude15)
+    CTvalid(16) := false.B
+    for (ctcol <- 0 until 16) {
+      for (idx <- 0 until 15) {
+        when (inputReg2.getCollectMetadata().valid(idx) && inputReg2.lhsRow(idx) === ctcol.U) {
+          CTvalid(ctcol) := true.B
+          value(ctcol) := inputReg2.reduced_sum(idx)
+        }
+      }
+    }
+
 
     when (inputReg2.merged === false.B) {
-      val mask = WireDefault(VecInit(Seq.fill(17)(false.B)))
-      mask(inputReg2.previousLhsRow) := true.B
+      when (inputReg2.iter === inputReg2.previousIter) {
+        // merge two writes
+        CTvalid(inputReg2.previousLhsRow) := true.B
+        value(inputReg2.previousLhsRow) := inputReg2.previousReducedSum
 
-      val value = WireDefault(VecInit(Seq.fill(17)(F44.zero)))
-      value(inputReg2.previousLhsRow) := inputReg2.previousReducedSum
-      CTmem.write(inputReg2.previousIter, value, mask)
+        CTmem.write(inputReg2.iter, value, CTvalid)
+
+      } .otherwise {
+        CTmem.write(inputReg2.iter, value, CTvalid)
+
+
+        val mask = WireDefault(VecInit(Seq.fill(17)(false.B)))
+        mask(inputReg2.previousLhsRow) := true.B
+
+        val valueLastIter = WireDefault(VecInit(Seq.fill(17)(F44.zero)))
+        valueLastIter(inputReg2.previousLhsRow) := inputReg2.previousReducedSum
+
+        CTmem.write(inputReg2.previousIter, valueLastIter, mask)
+      }
+    } .otherwise {
+      CTmem.write(inputReg2.iter, value, CTvalid)
     }
   }
 
@@ -107,7 +135,7 @@ class CollectUnit extends Module {
   when (true.B) {
     // output logic
     // can we output more ?
-    when (nextRowOutput < iterArrivedDelay) {
+    when (nextRowOutput < iterArrived) {
       // output last one
       validReg := true.B
       nextRowOutput := nextRowOutput + 1.U

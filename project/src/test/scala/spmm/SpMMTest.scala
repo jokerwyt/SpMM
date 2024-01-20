@@ -8,7 +8,6 @@ import spmm.SpMMTest.addScore
 
 import scala.collection.mutable
 import scala.util.Random
-import org.scalactic.SeqEqualityConstraints
 
 case class LhsInput(lhsRowIdx: Seq[Int], lhsCol: Seq[Int], lhsData: Seq[Int]) {
   def * (rhs: Seq[Seq[Int]]): Seq[Seq[Int]] = {
@@ -91,9 +90,6 @@ object DataGen {
     Seq.fill(16)(Seq.fill(16)(rnd.nextInt(256) - 128))
   }
   def simpleRhs = Seq.tabulate(16)(i=>Seq.fill(16)(i))
-  def MyRhs = Seq.tabulate(16)(i=>{
-      Seq.fill(16)(16-i)
-  })
 }
 
 object SpMMTest {
@@ -106,7 +102,7 @@ object SpMMTest {
 
 trait SpMMTest extends AnyFlatSpec
   with ChiselScalatestTester
-  with ParallelTestExecution // 并行测试加速
+ with ParallelTestExecution // 并行测试加速
   {
   def testDriver(dut: SpMM, rnd: Random, inputs: Seq[SpMMInput]): Int = {
     var clock = 0
@@ -142,64 +138,23 @@ trait SpMMTest extends AnyFlatSpec
           inputData()
         }
       }
-      println("input done")
     } .fork {
       for(input <- inputs) {
         for(lhs <- input.lhsInput) {
-
           val output = lhs * input.rhs
-          // print lhs, rhs & answer
-
-          // val lhsMatrix = Array.ofDim[Int](16, 16)
-          // for(i <- 0 until lhs.lhsRowIdx.length) {
-          //   for(j <- lhs.lhsRowIdx(i) to (if(i == 0) 0 else lhs.lhsRowIdx(i - 1) + 1) by -1) {
-          //     lhsMatrix(i)(lhs.lhsCol(j)) = lhs.lhsData(j)
-          //   }
-          // }
-          // // output numbers in format of [0, 256)
-          // // do not output negative numbers
-          // println("lhs:")
-          // for(i <- 0 until 16) {
-          //   for(j <- 0 until 16) {
-          //     print(f"${lhsMatrix(i)(j)}%4d, ")
-          //   }
-          //   println()
-          // }
-          // println("rhs:")
-          // for(i <- 0 until 16) {
-          //   for(j <- 0 until 16) {
-          //     print(f"${input.rhs(i)(j)}%4d, ")
-          //   }
-          //   println()
-          // }
-          // println("answer:")
-          // for(i <- 0 until 16) {
-          //   for(j <- 0 until 16) {
-          //     print(f"${output(i)(j)}%4d, ")
-          //   }
-          //   println()
-          // }
-
-          var matched = true
           for(i <- 0 until 16) {
             while(!dut.io.outValid.peek().litToBoolean) {
               clock += 1
               dut.clock.step()
             }
-            // println("clock now: " + clock)
-            // println(s"output $i clock")
-            // dut.io.outData zip output(i) foreach {
-            //   case(l, r) => l.data.expect(r.S)
-            // }
+            dut.io.outData zip output(i) foreach {
+              case(l, r) => l.data.expect(r.S)
+            }
             clock += 1
             dut.clock.step()
           }
-          // if (!matched) {
-          //   println("mismatch!!!!!!!");
-          // }
         }
       }
-      println("output done")
     } .join()
     clock
   }
@@ -211,8 +166,8 @@ trait SpMMTest extends AnyFlatSpec
         WriteVcdAnnotation,         // 输出的波形在 test_run_dir 里
         VerilatorBackendAnnotation  // 使用 Verilator 会评测地更快
       )) { dut =>
-        val add = counter.getOrElse("add", 0)
-        val mul = counter.getOrElse("mul", 0)
+        val add = counter("add")
+        val mul = counter("mul")
         val clock = testDriver(dut, new Random(0), inputs)
         val score = scoreFn(add, mul, clock)
         val totalScore = addScore(score)
@@ -236,21 +191,7 @@ trait SpMMTest extends AnyFlatSpec
   }
   def testItOn(tag: String, score: Double, inputs: Seq[SpMMInput], scoreList: Seq[(Int, Double)]): Unit = {
     val scoreFn: (Int, Int, Int) => Double = (add, mul, clock) => {
-      var ratio = scoreList.collectFirst { case (c, r) if clock <= c => {
-        r
-      } }.getOrElse(0.0)
-
-      // print 3 first entry of scoreList
-
-      for (i <- 0 until 3) {
-        if (i < scoreList.length) {
-          print(f"${scoreList(i)._1}%5d, ")
-        } else {
-          print(f"     0, ")
-        }
-      }
-      println()
-
+      var ratio = scoreList.collectFirst { case (c, r) if clock <= c => r }.getOrElse(0.0)
       ratio = Math.min(ratio * resourceScoreWeight(add, mul), 1.0)
       ratio * score
     }
